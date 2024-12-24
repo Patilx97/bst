@@ -40,6 +40,79 @@ Create Nginx configuration file:
 
 ### Live Configuration
 Create a file named `wp-live.conf`:
+
+```nginx
+server {
+    server_name bsasg.zapto.org;
+    root /var/www/html/wp-live;
+
+    index index.php index.html index.htm;
+
+    # Gzip compression settings
+    gzip on;
+    gzip_types text/plain application/xml text/css application/javascript;
+    gzip_min_length 1000;
+    gzip_comp_level 6;
+    gzip_vary on;
+
+    # Block access to sensitive files (wp-config.php, wp-login.php, etc.)
+    location ~* ^/(wp-config.php|README.MD|wp-admin|wp-login.php|readme.html|license.txt|xmlrpc.php|\.git|\.env) {
+        deny all;
+    }
+
+    # Prevent access to .htaccess and hidden files
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # Block access to core WordPress directories and files
+    location ~* ^/(wp-includes|wp-content/uploads/.*\.(php|pl|py|jsp|asp|htaccess)) {
+        deny all;
+    }
+
+    # Main location block for WordPress (should be the last one)
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+Enable the configurations:
+```bash
+sudo ln -s /etc/nginx/sites-available/wp-admin.conf /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/wp-live.conf /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
+```
+
+## 5. Setting Up Domain and SSL Certificates
+### Point Server IP to Domain
+Update the A record of your domain purchased from [No-IP](https://www.noip.com/) to point to your server's IP address.
+
+### Generate SSL Certificate
+Install Certbot:
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+```
+
+Generate SSL certificates for your domain:
+```bash
+sudo certbot --nginx -d bsasg.zapto.org -d www.bsasg.zapto.org
+```
+
+Reload Nginx to apply the certificates:
+```bash
+sudo systemctl reload nginx
+```
+
+After generating certificates the existing `wp-live.conf` file will get updated:
+
 ```nginx
 server {
     server_name bsasg.zapto.org;
@@ -87,33 +160,6 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
-```
-
-Enable the configurations:
-```bash
-sudo ln -s /etc/nginx/sites-available/wp-admin.conf /etc/nginx/sites-enabled/
-sudo ln -s /etc/nginx/sites-available/wp-live.conf /etc/nginx/sites-enabled/
-sudo systemctl restart nginx
-```
-
-## 5. Setting Up Domain and SSL Certificates
-### Point Server IP to Domain
-Update the A record of your domain purchased from [No-IP](https://www.noip.com/) to point to your server's IP address.
-
-### Generate SSL Certificate
-Install Certbot:
-```bash
-sudo apt install certbot python3-certbot-nginx -y
-```
-
-Generate SSL certificates for your domain:
-```bash
-sudo certbot --nginx -d bsasg.zapto.org -d www.bsasg.zapto.org
-```
-
-Reload Nginx to apply the certificates:
-```bash
-sudo systemctl reload nginx
 ```
 
 ## 6. CI/CD Pipeline for Automated Deployment
