@@ -87,14 +87,36 @@ server {
 Create a file named `wp-live.conf`:
 ```nginx
 server {
-    listen 80;
     server_name bsasg.zapto.org;
     root /var/www/html/wp-live;
 
     index index.php index.html index.htm;
 
+    # Gzip compression settings
+    gzip on;
+    gzip_types text/plain application/xml text/css application/javascript;
+    gzip_min_length 1000;
+    gzip_comp_level 6;
+    gzip_vary on;
+
+    # Block access to sensitive files (wp-config.php, wp-login.php, etc.)
+    location ~* ^/(wp-config.php|README.MD|wp-admin|wp-login.php|readme.html|license.txt|xmlrpc.php|\.git|\.env) {
+        deny all;
+    }
+
+    # Prevent access to .htaccess and hidden files
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # Block access to core WordPress directories and files
+    location ~* ^/(wp-includes|wp-content/uploads/.*\.(php|pl|py|jsp|asp|htaccess)) {
+        deny all;
+    }
+
+    # Main location block for WordPress (should be the last one)
     location / {
-        try_files $uri $uri/ /index.php;
+        try_files $uri $uri/ /index.php?$args;
     }
 
     location ~ \.php$ {
@@ -104,9 +126,11 @@ server {
         include fastcgi_params;
     }
 
-    location ~ /\.ht {
-        deny all;
-    }
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/bsasg.zapto.org/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/bsasg.zapto.org/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
 ```
 
