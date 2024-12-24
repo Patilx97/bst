@@ -31,27 +31,9 @@ Download and extract WordPress:
 ```bash
 wget https://wordpress.org/latest.tar.gz
 tar -xzvf latest.tar.gz
-sudo mv wordpress /var/www/html/
+sudo mv wordpress /var/www/html/wp-live
 ```
-
-Set up the directory structure:
-
-Copy WordPress files to a second directory named `wp-live`:
-```bash
-sudo cp -r /var/www/html/wordpress /var/www/html/wp-live
-```
-
-Remove unnecessary files from `wp-live`:
-```bash
-sudo rm -rf /var/www/html/wp-live/.git
-sudo rm -rf /var/www/html/wp-live/wp-admin
-sudo rm /var/www/html/wp-live/wp-config.php
-sudo rm /var/www/html/wp-live/readme.html
-sudo rm /var/www/html/wp-live/license.txt
-sudo rm /var/www/html/wp-live/xmlrpc.php
-```
-
-The `wordpress` directory serves as the staging environment, while `wp-live` hosts the live website.
+ `wp-live` hosts the live website.
 
 ## 4. Configuring Nginx
 Create Nginx configuration file:
