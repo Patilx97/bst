@@ -54,34 +54,7 @@ sudo rm /var/www/html/wp-live/xmlrpc.php
 The `wordpress` directory serves as the staging environment, while `wp-live` hosts the live website.
 
 ## 4. Configuring Nginx
-Create Nginx configuration files:
-
-### Development/Staging Configuration
-Create a file named `wp-admin.conf`:
-```nginx
-server {
-    listen 80;
-    server_name dev.bsasg.zapto.org;
-    root /var/www/html/wordpress;
-
-    index index.php index.html index.htm;
-
-    location / {
-        try_files $uri $uri/ /index.php;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\.ht {
-        deny all;
-    }
-}
-```
+Create Nginx configuration file:
 
 ### Live Configuration
 Create a file named `wp-live.conf`:
