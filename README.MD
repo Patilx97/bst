@@ -197,7 +197,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          rsync -avz --delete --exclude '.git*' --exclude 'wp-admin' --exclude 'wp-config.php' --exclude 'readme.html' --exclude 'license.txt' --exclude 'xmlrpc.php' ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:/var/www/html/wp-live/
+          rsync -avz --delete ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:/var/www/html/wp-live/
         env:
           VPS_IP: ${{ secrets.VPS_IP }}
 
